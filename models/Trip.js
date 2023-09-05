@@ -34,6 +34,14 @@ const tripSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  status: {
+    type: String,
+    required: true,
+  },
+  rideType: {
+    type: Number,
+    required: true,
+  },
 });
 
 const Trip = mongoose.model("Trip", tripSchema);

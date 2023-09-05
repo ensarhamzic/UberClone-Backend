@@ -7,6 +7,7 @@ Router.post("/signup", usersController.signUp);
 Router.post("/signin", usersController.signIn);
 Router.post("/verify", checkAuth, usersController.verify);
 Router.post("/addLocation", checkAuth, usersController.addLocation);
-Router.post('/requestRide', checkAuth, usersController.requestRide)
+Router.post("/requestRide", checkAuth, usersController.requestRide);
+Router.post("/cancelRideRequest", checkAuth, usersController.cancelRideRequest);
 
 module.exports = Router;

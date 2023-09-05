@@ -138,14 +138,9 @@ const requestRide = async (req, res) => {
     dropoffLocationName: dropoffLocationName,
     passenger: passengerId,
     price: tripCost,
+    status: "requested",
+    rideType,
   });
-
-  // let id: String
-  //   let passengerName: String
-  //   let dropoffLocationName: String
-  //   let pickupLocation: Location
-  //   let dropoffLocation: Location
-  //   let tripCost: Double
 
   const passenger = await User.findById(passengerId);
 
@@ -169,10 +164,42 @@ const requestRide = async (req, res) => {
   return res.status(200).json({ message: "success" });
 };
 
+const cancelRideRequest = async (req, res) => {
+  let token = req.headers.authorization;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  // find trip by passengerId and status = "requested"
+  const trip = await Trip.findOne({
+    passenger: decoded.id,
+    status: "requested",
+  });
+
+  if (!trip) {
+    return res.status(400).json({ error: "No trip found" });
+  }
+
+  // send message to driver
+  const message = {
+    type: "rideRequestCancelled",
+    tripId: trip._id,
+  };
+
+  const convertedMessage = convertMessage(message);
+  const stringifiedMessage = JSON.stringify(convertedMessage);
+
+  sendToGroup(trip.rideType, stringifiedMessage);
+
+  // delete trip
+  await Trip.deleteOne({ _id: trip._id });
+
+  return res.status(200).json({ message: "success" });
+};
+
 module.exports = {
   signUp,
   signIn,
   verify,
   addLocation,
   requestRide,
+  cancelRideRequest,
 };

@@ -9,7 +9,9 @@ const initializeSocketServer = () => {
     const queryParams = new URLSearchParams(req.url.split("?")[1]);
     const userType = queryParams.get("type");
     const carType = queryParams.get("carType");
+    const userId = queryParams.get("userId");
 
+    addUserToGroup(userId, ws);
     addUserToGroup(userType, ws);
     if (carType) {
       addUserToGroup(carType, ws);
