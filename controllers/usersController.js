@@ -195,6 +195,37 @@ const cancelRideRequest = async (req, res) => {
   return res.status(200).json({ message: "success" });
 };
 
+const acceptRide = async (req, res) => {
+  let token = req.headers.authorization;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const { tripId } = req.body;
+
+  // find trip by tripId
+  const trip = await Trip.findById(tripId);
+
+  if (!trip) {
+    return res.status(400).json({ error: "No trip found" });
+  }
+
+  // send message to passenger
+  const message = {
+    type: "rideAccepted",
+    trip,
+  };
+
+  const convertedMessage = convertMessage(message);
+  const stringifiedMessage = JSON.stringify(convertedMessage);
+
+  sendToGroup(trip.passenger._id, stringifiedMessage);
+
+  // update trip status to "accepted"
+  trip.status = "accepted";
+  await trip.save();
+
+  return res.status(200).json({ message: "success" });
+};
+
 module.exports = {
   signUp,
   signIn,
@@ -202,4 +233,5 @@ module.exports = {
   addLocation,
   requestRide,
   cancelRideRequest,
+  acceptRide,
 };

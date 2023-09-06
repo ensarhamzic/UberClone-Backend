@@ -9,5 +9,6 @@ Router.post("/verify", checkAuth, usersController.verify);
 Router.post("/addLocation", checkAuth, usersController.addLocation);
 Router.post("/requestRide", checkAuth, usersController.requestRide);
 Router.post("/cancelRideRequest", checkAuth, usersController.cancelRideRequest);
+Router.post("/acceptRide", checkAuth, usersController.acceptRide);
 
 module.exports = Router;
