@@ -147,6 +147,7 @@ const requestRide = async (req, res) => {
   const message = {
     type: "rideRequest",
     tripId: trip._id,
+    passengerId: passenger._id,
     passengerName: passenger.fullName,
     dropoffLocationName,
     pickupLocation,
@@ -208,10 +209,19 @@ const acceptRide = async (req, res) => {
     return res.status(400).json({ error: "No trip found" });
   }
 
+  const driver = await User.findById(decoded.id);
+
   // send message to passenger
   const message = {
     type: "rideAccepted",
-    trip,
+    tripId: trip._id,
+    dropoffLocationName: trip.dropoffLocationName,
+    pickupLocation: trip.pickupLocation,
+    dropoffLocation: trip.dropoffLocation,
+    tripCost: trip.price,
+    driverId: decoded.id,
+    driverName: driver.fullName,
+    rideType: trip.rideType,
   };
 
   const convertedMessage = convertMessage(message);
@@ -219,8 +229,8 @@ const acceptRide = async (req, res) => {
 
   sendToGroup(trip.passenger._id, stringifiedMessage);
 
-  // update trip status to "accepted"
   trip.status = "accepted";
+  trip.driver = decoded.id;
   await trip.save();
 
   return res.status(200).json({ message: "success" });
