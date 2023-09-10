@@ -236,6 +236,41 @@ const acceptRide = async (req, res) => {
   return res.status(200).json({ message: "success" });
 };
 
+const cancelRide = async (req, res) => {
+  const { tripId } = req.body;
+
+  console.log("CANCEL RIDE WORKING");
+  console.log(tripId);
+
+  let token = req.headers.authorization;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const trip = await Trip.findOne({
+    _id: tripId,
+  });
+
+  if (!trip) {
+    return res.status(400).json({ error: "No trip found" });
+  }
+
+  // send message to driver
+  const message = {
+    type: "rideCancelled",
+    tripId: trip._id,
+  };
+
+  const convertedMessage = convertMessage(message);
+  const stringifiedMessage = JSON.stringify(convertedMessage);
+
+  sendToGroup(trip.passenger._id, stringifiedMessage);
+  sendToGroup(trip.driver._id, stringifiedMessage);
+
+  // delete trip
+  await Trip.deleteOne({ _id: trip._id });
+
+  return res.status(200).json({ message: "success" });
+};
+
 module.exports = {
   signUp,
   signIn,
@@ -244,4 +279,5 @@ module.exports = {
   requestRide,
   cancelRideRequest,
   acceptRide,
+  cancelRide,
 };
