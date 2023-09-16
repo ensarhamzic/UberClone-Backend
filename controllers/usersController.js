@@ -271,6 +271,70 @@ const cancelRide = async (req, res) => {
   return res.status(200).json({ message: "success" });
 };
 
+const pickupPassenger = async (req, res) => {
+  let token = req.headers.authorization;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const { tripId } = req.body;
+
+  // find trip by tripId
+  const trip = await Trip.findById(tripId);
+
+  if (!trip) {
+    return res.status(400).json({ error: "No trip found" });
+  }
+
+  const driver = await User.findById(decoded.id);
+
+  // send message to passenger
+  const message = {
+    type: "rideStarted",
+    tripId: trip._id,
+  };
+
+  const convertedMessage = convertMessage(message);
+  const stringifiedMessage = JSON.stringify(convertedMessage);
+
+  sendToGroup(trip.passenger._id, stringifiedMessage);
+
+  trip.status = "inProgress";
+  await trip.save();
+
+  return res.status(200).json({ message: "success" });
+};
+
+const completeTrip = async (req, res) => {
+  let token = req.headers.authorization;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const { tripId } = req.body;
+
+  // find trip by tripId
+  const trip = await Trip.findById(tripId);
+
+  if (!trip) {
+    return res.status(400).json({ error: "No trip found" });
+  }
+
+  const driver = await User.findById(decoded.id);
+
+  // send message to passenger
+  const message = {
+    type: "rideCompleted",
+    tripId: trip._id,
+  };
+
+  const convertedMessage = convertMessage(message);
+  const stringifiedMessage = JSON.stringify(convertedMessage);
+
+  sendToGroup(trip.passenger._id, stringifiedMessage);
+
+  trip.status = "completed";
+  await trip.save();
+
+  return res.status(200).json({ message: "success" });
+};
+
 module.exports = {
   signUp,
   signIn,
@@ -280,4 +344,6 @@ module.exports = {
   cancelRideRequest,
   acceptRide,
   cancelRide,
+  pickupPassenger,
+  completeTrip,
 };

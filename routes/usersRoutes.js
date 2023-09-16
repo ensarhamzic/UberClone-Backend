@@ -11,5 +11,7 @@ Router.post("/requestRide", checkAuth, usersController.requestRide);
 Router.post("/cancelRideRequest", checkAuth, usersController.cancelRideRequest);
 Router.post("/acceptRide", checkAuth, usersController.acceptRide);
 Router.post("/cancelRide", checkAuth, usersController.cancelRide);
+Router.post("/pickupPassenger", checkAuth, usersController.pickupPassenger);
+Router.post("/completeTrip", checkAuth, usersController.completeTrip);
 
 module.exports = Router;
