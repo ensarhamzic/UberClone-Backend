@@ -42,6 +42,18 @@ const tripSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+  driverRating: {
+    type: Number,
+    required: false,
+  },
+  tip: {
+    type: Number,
+    required: false,
+  },
 });
 
 const Trip = mongoose.model("Trip", tripSchema);

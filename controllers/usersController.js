@@ -211,6 +211,27 @@ const acceptRide = async (req, res) => {
 
   const driver = await User.findById(decoded.id);
 
+  const allDriverTrips = await Trip.find({
+    driver: decoded.id,
+    status: "completed",
+  });
+
+  let driverRating = 0.0;
+
+  if (allDriverTrips.length > 0) {
+    let totalRating = 0;
+    let totalRatings = 0;
+    for (let i = 0; i < allDriverTrips.length; i++) {
+      if (allDriverTrips[i].driverRating) {
+        totalRating += allDriverTrips[i].driverRating;
+        totalRatings++;
+      }
+    }
+    if (totalRatings) {
+      driverRating = totalRating / totalRatings;
+    }
+  }
+
   // send message to passenger
   const message = {
     type: "rideAccepted",
@@ -222,7 +243,11 @@ const acceptRide = async (req, res) => {
     driverId: decoded.id,
     driverName: driver.fullName,
     rideType: trip.rideType,
+    driverRating,
   };
+
+  console.log("DRIVER RATING");
+  console.log(driverRating);
 
   const convertedMessage = convertMessage(message);
   const stringifiedMessage = JSON.stringify(convertedMessage);
@@ -335,6 +360,39 @@ const completeTrip = async (req, res) => {
   return res.status(200).json({ message: "success" });
 };
 
+const rewardDriver = async (req, res) => {
+  const { tripId, tip, rating } = req.body;
+
+  // find trip by tripId
+  const trip = await Trip.findById(tripId);
+
+  if (!trip) {
+    return res.status(400).json({ error: "No trip found" });
+  }
+
+  if (tip || rating) {
+    const message = {
+      type: "driverRewarded",
+      tip,
+      rating,
+    };
+
+    const convertedMessage = convertMessage(message);
+
+    const stringifiedMessage = JSON.stringify(convertedMessage);
+
+    sendToGroup(trip.driver._id, stringifiedMessage);
+  }
+
+  trip.tip = tip;
+  if (rating) {
+    trip.driverRating = rating;
+  }
+  await trip.save();
+
+  return res.status(200).json({ message: "success" });
+};
+
 module.exports = {
   signUp,
   signIn,
@@ -346,4 +404,5 @@ module.exports = {
   cancelRide,
   pickupPassenger,
   completeTrip,
+  rewardDriver,
 };
